@@ -907,8 +907,8 @@ sep_GLMM_wald<-function(count_data,pheno.data,sizefactor,sub_info,separateGLM = 
 
 
           if(score){
-            score<-crossprod(G_score,scale.res/(1+disp*model.test$mu))
-            var<-diag(crossprod(G_score,crossprod(P,G_score)))
+            score<-Matrix::crossprod(G_score,scale.res/(1+disp*model.test$mu))
+            var<-diag(Matrix::crossprod(G_score,Matrix::crossprod(P,G_score)))
             score_stat[g]<-score^2/var
 
             if(nperm & score){
@@ -917,8 +917,8 @@ sep_GLMM_wald<-function(count_data,pheno.data,sizefactor,sub_info,separateGLM = 
               seed.perm<-start.seed:(start.seed+nperm-1)
               perm_score[[g]]<-unlist(lapply(seed.perm,function(seed){
                 G_perm<-(switch.sub(G_score,sub_info,seed)$pdata)[,1]
-                score<-crossprod(G_perm,scale.res/(1+disp*model.test$mu))
-                var<-diag(crossprod(G_perm,crossprod(P,G_perm)))
+                score<-Matrix::crossprod(G_perm,scale.res/(1+disp*model.test$mu))
+                var<-diag(Matrix::crossprod(G_perm,Matrix::crossprod(P,G_perm)))
                 return(score^2/var)
               }))
               toc()
