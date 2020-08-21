@@ -866,6 +866,8 @@ sep_GLMM_wald<-function(count_data,pheno.data,sizefactor,sub_info,separateGLM = 
       converge_glmm<-rep(NA,sum(fitidx))
       internal_matrix_group<-list()
       perm_score<-list()
+
+print("point0")
       for(g in 1:sum(fitidx)){
         count=counts_group[fitidx,,drop=FALSE][g,]
         glmm_dat<-data.frame(count,modelMatrix,id=seq(1,nsample_group))
@@ -880,7 +882,7 @@ sep_GLMM_wald<-function(count_data,pheno.data,sizefactor,sub_info,separateGLM = 
         tic("GLMM model fitting")
         #tryCatch( {
 
-
+print("point1")
         model.test<-glmmkin(sizefactor = sizefactor[group_id],fit0=fit0,modelMatrix=modelMatrix,weights = weight, fixed = fixed,disp = disp,ns=ns_group,data=glmm_dat,kins=kin.test,id="id")
         converge_glmm[g]<-model.test$converged
         #},error=function(e){converge_glmm[g]=FALSE;print(paste0("Cannot analyze gene",g))})
@@ -950,7 +952,7 @@ sep_GLMM_wald<-function(count_data,pheno.data,sizefactor,sub_info,separateGLM = 
 
 
   }
-
+print("1")
   if(!score){
     ref_idx<-which(levels(group)==ref)
     comp_idx<-which(levels(group)!=ref)

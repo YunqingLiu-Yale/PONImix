@@ -7,7 +7,7 @@ Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 Depends:
-    R (>= 2.15),
+    R (>= 3.6.0),
     bbmle (>= 1.0.23.1),
     MASS (>= 7.3-51.6),
     pscl (>= 1.5.5),

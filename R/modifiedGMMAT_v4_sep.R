@@ -35,12 +35,12 @@ glmmkin <- function(sizefactor,fit0,modelMatrix,weights,fixed,disp,ns, data = pa
   }
   if(!is.null(attr(class(kins), "package")) && attr(class(kins), "package") == "Matrix")  kins <- list(kins1 = kins)
   if(method.optim != "Brent" && class(kins) == "matrix") kins <- list(kins1 = kins)
-  
+
   idx <- match(rownames(model.frame(formula = fixed, data = data, na.action = na.omit)), rownames(model.frame(formula = fixed, data = data, na.action = na.pass)))
-  
+
   tmp.matrix<-model.frame(formula = fixed, data = data, na.action = na.omit)
   y<-t(unname(tmp.matrix[,1,drop=F]))
-  # 
+  #
   # if(ncol(tmp.matrix)==1){
   #   modelMatrix<-matrix(rep(1,nrow(tmp.matrix)),ncol=1)
   #   colnames(modelMatrix)<-"(Intercept)"
@@ -56,19 +56,19 @@ glmmkin <- function(sizefactor,fit0,modelMatrix,weights,fixed,disp,ns, data = pa
   #                       modelMatrix = modelMatrix,
   #                       alpha_hat=disp,
   #                       weight=weights[,,drop=FALSE])
-  
-  
-  
+
+
+
   if(any(duplicated(data[idx, id]))) {
     cat("Duplicated id detected...\nAssuming longitudinal data with repeated measures...\n")
-    
+
     if(method.optim == "Brent") {
       if(is.null(kins)) {
         kins <- diag(length(unique(data[idx, id])))
         rownames(kins) <- colnames(kins) <- unique(data[idx, id])
       } else stop("Error: method.optim \"Brent\" can only be applied to unrelated individuals in longitudinal data analysis.")
     } else {
-      if(method.optim != "AI") kins[[length(kins) + 1]] <- diag(length(unique(data[idx,id]))) 
+      if(method.optim != "AI") kins[[length(kins) + 1]] <- diag(length(unique(data[idx,id])))
       else if(length(kins) > 0) kins[[length(kins) + 1]] <- Diagonal(n = length(unique(data[idx, id])))
       else kins <- list(kins1 = Diagonal(n = length(unique(data[idx, id]))))
       rownames(kins[[length(kins)]]) <- colnames(kins[[length(kins)]]) <- unique(data[idx, id])
@@ -107,7 +107,7 @@ glmmkin <- function(sizefactor,fit0,modelMatrix,weights,fixed,disp,ns, data = pa
     X<-modelMatrix
     #X <- model.matrix(fit0)
     #alpha <- fit0$coef
-    
+
     res <- y - mu
     tau <- 1
     Sigma_i <- diag(sqrtW^2/tau)
@@ -161,7 +161,7 @@ glmmkin.fit <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, tim
         fixrho.new[fixrho.idx] <- sign(fit$theta[covariance.idx[fixrho.idx, 1]])
       }
       while(any(fixtau.new != fixtau.old) || (!is.null(fixrho.new) && any(fixrho.new != fixrho.old))) {
-        
+
         warning("Variance estimate on the boundary of the parameter space observed, refitting model...", call. = FALSE)
         fixtau.old <- fixtau.new
         if(!is.null(covariance.idx)) fixrho.old <- fixrho.new
@@ -263,8 +263,9 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     #   Sigma <- Sigma + tau[i+ng]*kins[[i]]
     # }
     # #		if(is.Matrix) Sigma <- forceSymmetric(Sigma)
-    # 
+    #
     # Sigma_i <- chol2inv(chol(Sigma))
+    print("point 1_1")
     entry_Sigma_iXorY<-  lapply(ns, function(sid){
       if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
       }else{sub_Sigma <- diag(diagSigma[sid])}
@@ -281,6 +282,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
       #return(list(sigma_i=sub_Sigma_i))
       return(cbind(sub_Sigma_iY,sub_Sigma_iX))
     })
+    print("point 1_2")
     Sigma_iX<-Reduce(rbind,entry_Sigma_iXorY)
     # Sigma_i_new<-bdiag(entry_Sigma_iXorY)
     # Sigma_iY<-as.matrix(crossprod(Sigma_i_new,Y))
@@ -293,9 +295,9 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
       return(sub_XSigma_iX)
     })
     cov <- chol2inv(chol(Reduce("+",entry_XSigma_iX)))
-    
+
     Sigma_iXcov<- tcrossprod(Sigma_iX, cov)
-    
+
     # entry_Sigma_i<-  sapply(ns, function(sid){
     #   if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
     #   }else{sub_Sigma <- diag(diagSigma[sid])}
@@ -312,24 +314,24 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     #   #return(cbind(sub_Sigma_iY,sub_Sigma_iX))
     # })
     # Sigma_i<-bdiag(entry_Sigma_i)
-    
-    
+
+
     #rm(diagSigma)
     gc()
     #Sigma_iX <- crossprod(Sigma_i, X)
-    
+
     #P <- Sigma_i - tcrossprod(tcrossprod(Sigma_iX, chol2inv(chol(crossprod(X, Sigma_iX)))), Sigma_iX)
     #rm(Sigma_i)
     #gc()
     #PY <- crossprod(P, Y)
-    
+
     # XSigma_iX <- crossprod(X, Sigma_iX)
     # if(is.Matrix) XSigma_iX <- forceSymmetric(XSigma_iX)
     # cov <- chol2inv(chol(XSigma_iX))
     #Sigma_iXcov <- tcrossprod(Sigma_iX, cov)
-    
+
     PY <- Sigma_iY - tcrossprod(Sigma_iX, t(crossprod(Sigma_iXcov, Y)))
-    
+
     #PY <- crossprod(Sigma_i, Y) - tcrossprod(Sigma_iX, t(crossprod(Sigma_iXcov, Y)))
     tau0 <- tau
     score<-rep(NA,q2)
@@ -342,7 +344,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
         #else tau[idxtau[i]] <- max(0, tau0[idxtau[i]] + tau0[idxtau[i]]^2 * (crossprod(Y, PAPY) - sum(P*kins[[idxtau[i]-ng]]))/n)
         APY <- crossprod(kins[[idxtau[i]-ng]], PY)
         #APY<-matrix(Reduce(c,sapply(ns,function(sid){rep(sum(PY[sid]),length(sid))})),ncol=1)
-        
+
         entry_Sigma_iAPY<-  lapply(ns, function(sid){
           if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
           }else{sub_Sigma <- diag(diagSigma[sid])}
@@ -355,33 +357,33 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
           sub_Sigma_iAPY<-crossprod(sub_Sigma_i, APY[sid,,drop=F])
           return(cbind(sub_Sigma_iAPY,rep(sum_Sigma_i,length(sid))))
         })
-        
+
         # entry_Sigma_iAPY<-  sapply(ns, function(sid){
         #   sub_Sigma_i <- Sigma_i_new[sid,sid]
         #   sub_Sigma_iAPY<-matrix(crossprod(sub_Sigma_i, APY[sid,]),ncol=1)
         #   return(sub_Sigma_iAPY)
         # })
         PAPY <- Reduce(rbind,entry_Sigma_iAPY)[,1,drop=F] - tcrossprod(Sigma_iX, t(crossprod(Sigma_iXcov, APY)))
-        
-        
+
+
         # APY <- crossprod(kins[[idxtau[i]-ng]], PY)
         # PAPY <- crossprod(Sigma_i, APY) - tcrossprod(Sigma_iX, t(crossprod(Sigma_iXcov, APY)))
         if(!is.null(covariance.idx)) tau[idxtau[i]] <- if(idxtau[i] %in% idxtau2) 0 else max(0, tau0[idxtau[i]] + tau0[idxtau[i]]^2 * (sum(Y* PAPY) - (sum(Sigma_i*kins[[idxtau[i]-ng]])-sum(Sigma_iX*crossprod(kins[[idxtau[i]-ng]],Sigma_iXcov))))/n)
         else {
           score[i] <- sum(Y * PAPY) - (sum(unique(Reduce(rbind,entry_Sigma_iAPY)[,2]))-sum(sapply(ns, function(sid){sum(Sigma_iX[sid,,drop=F]*crossprod(kins[[idxtau[i]-ng]][sid,sid],Sigma_iXcov[sid,,drop=F]))})))
-          
+
           #score[i]<-sum(Y* PAPY) - (sum(Sigma_i*kins[[idxtau[i]-ng]])-sum(Sigma_iX*crossprod(kins[[idxtau[i]-ng]],Sigma_iXcov)))
           tau[idxtau[i]] <- max(0, tau0[idxtau[i]] + tau0[idxtau[i]]^2 * (score[i])/n)
         }
-        
+
       }
     }
     #rm(P)
     #gc()
   }
-  
-  
-  
+
+
+
   for (i in seq_len(maxiter)) {
     if(verbose) cat("\nIteration ", i, ":\n")
     beta0 <- beta
@@ -391,16 +393,16 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     # tic("R")
     # fit <- R_fitglmm_ai(Y, X, q, kins, ng, group.idx, sqrtW^2, tau, fixtau)
     # toc()
-    
+
     fit <- R_fitglmm_ai1(ns=ns,Y=Y, X=X, q=q, kins=kins, ng=ng, group.idx=group.idx, W=sqrtW^2, tau=tau, fixtau=fixtau)
-    
-    
+
+
     ##C++ version
     # tic("C")
     # fit <- fitglmm_ai(Y, X, q, kins, ng, group.idx, sqrtW^2, tau, fixtau)
     # toc()
     #else fit <- .Call(C_fitglmm_ai, Y, X, q, kins, ng, group.idx, sqrtW^2, tau, fixtau)
-    
+
     if(q2 > 0) {
       Dtau <- as.numeric(fit$Dtau)
       tau[idxtau] <- tau0[idxtau] + Dtau
@@ -436,12 +438,12 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
         tau[covariance.idx[fixrho.idx, 1]] <- sign(tau[covariance.idx[fixrho.idx, 1]]) * sqrt(tau[covariance.idx[fixrho.idx, 2]] * tau[covariance.idx[fixrho.idx, 3]])
       }
     }
-    
-    
+
+
     cov <- as.matrix(fit$cov)
-    
+
     beta <- as.numeric(fit$alpha)
-    
+
     eta <- as.numeric(fit$eta) + offset
     if(verbose) {
       cat("Variance component estimates:\n")
@@ -454,7 +456,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     Y <- eta - offset + (y - mu)/mu.eta
     variance<-mu+disp*mu^2
     sqrtW <- mu.eta/sqrt(1/as.vector(weights)*variance)
-    
+
     if(2*max(abs(beta - beta0)/(abs(beta) + abs(beta0) + tol), abs(tau - tau0)/(abs(tau) + abs(tau0) + tol)) < tol) break
     if(max(abs(tau)) > tol^(-2)) {
       warning("Large variance estimate observed in the iterations, model not converged...", call. = FALSE)
@@ -462,7 +464,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
       break
     }
   }
-  
+
   converged <- ifelse(i < maxiter, TRUE, FALSE)
   res <- y - mu
   res.var <- rep(1, n)
@@ -473,10 +475,10 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     n <- nrow(X)
     p <- ncol(X)
     q2 <- sum(fixtau == 0)
-    
+
     diagSigma <- rep(0, n)
     for(i in 1:ng) diagSigma[group.idx[[i]]] <- tau[i]/sqrtW[group.idx[[i]]]^2
-    
+
     entry_Sigma_i<<-  lapply(ns, function(sid){
       if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
       }else{sub_Sigma <- diag(diagSigma[sid])}
@@ -499,9 +501,9 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
      XSigma_iX <- forceSymmetric(XSigma_iX)
      cov <- chol2inv(chol(XSigma_iX))
      Sigma_iXcov <- tcrossprod(Sigma_iX, cov)
-    # 
+    #
      rowSSigma_i<-as.vector(Matrix::rowSums(Sigma_i))
-    
+
   }
   P<-as.matrix(Sigma_i-tcrossprod(Sigma_iX,Sigma_iXcov))
   #P1<<-as.matrix(Sigma_i-tcrossprod(fit$Sigma_iX,fit$Sigma_iXcov))
@@ -522,8 +524,8 @@ R_fitglmm_ai1 <- function(ns,Y, X, q, kins, ng, group.idx, W, tau, fixtau) {
   q2 <- sum(fixtau == 0)
   diagSigma <- rep(0, n)
   for(i in 1:ng) diagSigma[group.idx[[i]]] <- tau[i]/W[group.idx[[i]]]
-  
-  
+
+
   entry_Sigma_iXorY<-  lapply(ns, function(sid){
     if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
     }else{sub_Sigma <- diag(diagSigma[sid])}
@@ -539,31 +541,31 @@ R_fitglmm_ai1 <- function(ns,Y, X, q, kins, ng, group.idx, W, tau, fixtau) {
     #return(list(sigma_i=sub_Sigma_i))
     return(cbind(sub_Sigma_iY,sub_Sigma_iX))
   })
-  
+
   Sigma_iX_new<-Reduce(rbind,entry_Sigma_iXorY)
   # Sigma_i_new<-bdiag(entry_Sigma_iXorY)
   # Sigma_iY<-as.matrix(crossprod(Sigma_i_new,Y))
   # Sigma_iX_new<-as.matrix(crossprod(Sigma_i_new, X))
   Sigma_iY<-Sigma_iX_new[,1,drop=F]
   Sigma_iX_new<-Sigma_iX_new[,-1,drop=F]
-  
+
   entry_XSigma_iX<-lapply(ns, function(sid){
     sub_X<-X[sid,,drop=F]
     sub_XSigma_iX <- crossprod(sub_X, Sigma_iX_new[sid,,drop=F])
     return(sub_XSigma_iX)
   })
   cov_new <- chol2inv(chol(Reduce("+",entry_XSigma_iX)))
-  
+
   Sigma_iXcov_new <- tcrossprod(Sigma_iX_new, cov_new)
-  
+
   beta_new<-crossprod(cov_new,Reduce("+",lapply(ns, function(sid){
     sub_Y<-Y[sid]
     return(crossprod(Sigma_iX_new[sid,,drop=F], sub_Y))
   })))
-  
+
   eta_new <- Y - diagSigma*(Sigma_iY-tcrossprod(Sigma_iX_new,t(beta_new)))
-  
-  
+
+
   if(q2 > 0) {
     idxtau <- which(fixtau == 0)
     PY <- Sigma_iY - tcrossprod(Sigma_iX_new, t(crossprod(Sigma_iXcov_new, Y)))
@@ -588,14 +590,14 @@ R_fitglmm_ai1 <- function(ns,Y, X, q, kins, ng, group.idx, W, tau, fixtau) {
           sub_kins<-lapply(kins,function(component){component[sid,sid,drop=F]})
           for(comp in 1:q) sub_Sigma <- sub_Sigma + tau[comp+ng]*sub_kins[[comp]]
           sub_Sigma_i <- chol2inv(chol(sub_Sigma))
-          
+
           rm(sub_Sigma)
           #sum_Sigma_i<-sum(sub_Sigma_i)
           sum_Sigma_i<-sum(sub_Sigma_i*sub_kins[[i]])
           sub_Sigma_iAPY<-crossprod(sub_Sigma_i, APY[sid,,drop=F])
           return(cbind(sub_Sigma_iAPY,rep(sum_Sigma_i,length(sid))))
         })
-        
+
         # entry_Sigma_iAPY<-  sapply(ns, function(sid){
         #   sub_Sigma_i <- Sigma_i_new[sid,sid]
         #   sub_Sigma_iAPY<-matrix(crossprod(sub_Sigma_i, APY[sid,]),ncol=1)
@@ -608,8 +610,8 @@ R_fitglmm_ai1 <- function(ns,Y, X, q, kins, ng, group.idx, W, tau, fixtau) {
           else AI[i,j] <- sum(PY * crossprod(kins[[idxtau[j]-ng]], PAPY))
           if(j != i) AI[j,i] <- AI[i,j]
         }
-        
-        
+
+
         # P=Sigma_i-Sigma_iX%*%t(Sigma_iXcov)
         # AI[i,i]=sum(diag(P%*%kins[[idxtau[i]-ng]]%*%P%*%kins[[idxtau[i]-ng]]))
       }
