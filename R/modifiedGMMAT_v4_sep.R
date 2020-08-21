@@ -265,24 +265,24 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     # #		if(is.Matrix) Sigma <- forceSymmetric(Sigma)
     #
     # Sigma_i <- chol2inv(chol(Sigma))
-    print("point 1_1")
-    entry_Sigma_iXorY<-  lapply(ns, function(sid){
+    debug<<-"point 1_1"
+    entry_Sigma_iXorY<<-  lapply(ns, function(sid){
       if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
       }else{sub_Sigma <- diag(diagSigma[sid])}
       #sub_Sigma <- diag(diagSigma[sid])
       #sub_kins<-matrix(1,nrow = length(sid),ncol=length(sid))
-      sub_kins<-lapply(kins,function(component){component[sid,sid,drop=F]})
-      for(i in 1:q) sub_Sigma <- sub_Sigma + tau[i+ng]*sub_kins[[i]]
+      sub_kins<<-lapply(kins,function(component){component[sid,sid,drop=F]})
+      for(i in 1:q) sub_Sigma <<- sub_Sigma + tau[i+ng]*sub_kins[[i]]
       sub_Sigma_i <- chol2inv(chol(sub_Sigma))
       rm(sub_Sigma)
-      sub_X<-X[sid,,drop=F]
-      sub_Sigma_iX <- crossprod(sub_Sigma_i, sub_X)
-      sub_Y<-Y[sid]
-      sub_Sigma_iY<-crossprod(sub_Sigma_i,sub_Y)
+      sub_X<<-X[sid,,drop=F]
+      sub_Sigma_iX <<- crossprod(sub_Sigma_i, sub_X)
+      sub_Y<<-Y[sid]
+      sub_Sigma_iY<<-crossprod(sub_Sigma_i,sub_Y)
       #return(list(sigma_i=sub_Sigma_i))
       return(cbind(sub_Sigma_iY,sub_Sigma_iX))
     })
-    print("point 1_2")
+    debug<<-"point 1_2"
     Sigma_iX<-Reduce(rbind,entry_Sigma_iXorY)
     # Sigma_i_new<-bdiag(entry_Sigma_iXorY)
     # Sigma_iY<-as.matrix(crossprod(Sigma_i_new,Y))
