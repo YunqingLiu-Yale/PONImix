@@ -458,11 +458,11 @@ debug1<<-"point 1_5"
     variance<-mu+disp*mu^2
     sqrtW <- mu.eta/sqrt(1/as.vector(weights)*variance)
 
-    if(2*max(abs(beta - beta0)/(abs(beta) + abs(beta0) + tol), abs(tau - tau0)/(abs(tau) + abs(tau0) + tol)) < tol) break
+    if(2*max(abs(beta - beta0)/(abs(beta) + abs(beta0) + tol), abs(tau - tau0)/(abs(tau) + abs(tau0) + tol)) < tol) {break();}
     if(max(abs(tau)) > tol^(-2)) {
       warning("Large variance estimate observed in the iterations, model not converged...", call. = FALSE)
-      i <- maxiter
-      break
+      i <- maxiter;
+      break();
     }
   }
 
