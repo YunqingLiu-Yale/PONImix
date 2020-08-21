@@ -265,7 +265,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     # #		if(is.Matrix) Sigma <- forceSymmetric(Sigma)
     #
     # Sigma_i <- chol2inv(chol(Sigma))
-    debug<<-"point 1_1"
+    debug1<<-"point 1_1"
     entry_Sigma_iXorY<<-  lapply(ns, function(sid){
       if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
       }else{sub_Sigma <- diag(diagSigma[sid])}
@@ -282,7 +282,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
       #return(list(sigma_i=sub_Sigma_i))
       return(cbind(sub_Sigma_iY,sub_Sigma_iX))
     })
-    debug<<-"point 1_2"
+    debug1<<-"point 1_2"
     Sigma_iX<-Reduce(rbind,entry_Sigma_iXorY)
     # Sigma_i_new<-bdiag(entry_Sigma_iXorY)
     # Sigma_iY<-as.matrix(crossprod(Sigma_i_new,Y))
@@ -393,8 +393,8 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     # tic("R")
     # fit <- R_fitglmm_ai(Y, X, q, kins, ng, group.idx, sqrtW^2, tau, fixtau)
     # toc()
-
-    fit <- R_fitglmm_ai1(ns=ns,Y=Y, X=X, q=q, kins=kins, ng=ng, group.idx=group.idx, W=sqrtW^2, tau=tau, fixtau=fixtau)
+debug1<<-"point 1_3"
+    fit <<- R_fitglmm_ai1(ns=ns,Y=Y, X=X, q=q, kins=kins, ng=ng, group.idx=group.idx, W=sqrtW^2, tau=tau, fixtau=fixtau)
 
 
     ##C++ version
@@ -404,6 +404,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     #else fit <- .Call(C_fitglmm_ai, Y, X, q, kins, ng, group.idx, sqrtW^2, tau, fixtau)
 
     if(q2 > 0) {
+      debug1<<-"point 1_4"
       Dtau <- as.numeric(fit$Dtau)
       tau[idxtau] <- tau0[idxtau] + Dtau
       if(is.null(covariance.idx)) {
@@ -439,7 +440,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
       }
     }
 
-
+debug1<<-"point 1_5"
     cov <- as.matrix(fit$cov)
 
     beta <- as.numeric(fit$alpha)
@@ -479,7 +480,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
     diagSigma <- rep(0, n)
     for(i in 1:ng) diagSigma[group.idx[[i]]] <- tau[i]/sqrtW[group.idx[[i]]]^2
 
-    entry_Sigma_i<<-  lapply(ns, function(sid){
+    entry_Sigma_i<-  lapply(ns, function(sid){
       if(length(sid)==1){sub_Sigma<-matrix(diagSigma[sid])
       }else{sub_Sigma <- diag(diagSigma[sid])}
       sub_kins<-lapply(kins,function(component){component[sid,sid,drop=F]})
