@@ -6,6 +6,18 @@ Author: Who wrote it
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
+Depends:
+    R (>= 2.15),
+    qtl (>= 1.30-4)
+Imports:
+    bbmle,
+    MASS,
+    pscl,
+    gamlss,
+    Matrix,
+    VGAM,
+    maxLik,
+    tictoc
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
