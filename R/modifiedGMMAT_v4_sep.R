@@ -250,7 +250,7 @@ glmmkin.ai <- function(y,modelMatrix,sizefactor,disp,ns,weights,fit0, kins, cova
   ng <- length(group.idx)
   idxtau <- which(fixtau == 0)
   if(!is.null(covariance.idx)) idxtau2 <- intersect(covariance.idx[, 1], idxtau)
-  q2 <- sum(fixtau == 0)
+  q2 <<- sum(fixtau == 0)
   if(q2 > 0) {
     tau[idxtau] <- rep(var(Y)/(q+ng), q2)
     if(!is.null(covariance.idx)) tau[idxtau2] <- 0
